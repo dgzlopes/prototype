@@ -1,5 +1,8 @@
 # github.com/DataDog/zstd v1.4.1
 github.com/DataDog/zstd
+# github.com/alecthomas/kong v0.2.16
+## explicit
+github.com/alecthomas/kong
 # github.com/cespare/xxhash v1.1.0
 github.com/cespare/xxhash
 # github.com/dgraph-io/badger/v3 v3.2011.1
