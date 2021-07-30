@@ -114,15 +114,10 @@ func (c *Client) SetServiceConfigWithTags(service string, cType string, tags []s
 	c.Set(b, config)
 }
 
-type ProtoD struct {
-	Name       string      `json:"name"`
-	Tags       []string    `json:"tags"`
-	ServerInfo *ServerInfo `json:"server_info"`
-}
-
-type ServerInfo struct {
-	Version string `json:"version"`
-	State   string `json:"state"`
+type PrototypeRequest struct {
+	Name string   `json:"name"`
+	ID   string   `json:"id"`
+	Tags []string `json:"tags"`
 }
 
 func errorResponse(w http.ResponseWriter, message string, httpStatusCode int) {
@@ -140,7 +135,7 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
 		return
 	}
-	var protod ProtoD
+	var protod PrototypeRequest
 	var unmarshalErr *json.UnmarshalTypeError
 
 	decoder := json.NewDecoder(r.Body)
@@ -156,7 +151,7 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 	}
 	configs := c.GetServiceConfigWithTags(protod.Name, protod.Tags, false)
 	json.NewEncoder(w).Encode(configs)
-	fmt.Println("Endpoint Hit: ProtoD")
+	fmt.Println("Endpoint Hit: ProtoD:  ", protod.ID)
 }
 
 type Send struct {
