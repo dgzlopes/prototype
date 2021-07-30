@@ -146,7 +146,7 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 	}
 	configs := c.GetServiceConfigWithTags(protod.Service, protod.Tags, false)
 	json.NewEncoder(w).Encode(configs)
-	fmt.Println("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID)
+	fmt.Println("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID, protod.EnvoyInfo)
 }
 
 type Send struct {

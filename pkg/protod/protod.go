@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -129,13 +130,22 @@ func (p *ProtoD) pull(ctx context.Context) error {
 
 // GetDynamicConfig gets all the configs from the control plane
 func (p *ProtoD) GetDynamicConfig() error {
+	envoyInfo, err := getEnvoyInfo()
+	if err != nil {
+		return err
+	}
+
 	json_data, err := json.Marshal(util.PrototypeRequest{
 		Cluster: p.cfg.Cluster,
 		Service: p.cfg.Service,
 		ID:      p.id,
 		Tags:    p.cfg.Tags,
+		EnvoyInfo: &util.EnvoyInfo{
+			Version: envoyInfo["version"].(string),
+			State:   envoyInfo["state"].(string),
+			Uptime:  envoyInfo["uptime_current_epoch"].(string),
+		},
 	})
-
 	if err != nil {
 		return err
 	}
@@ -168,4 +178,19 @@ func (p *ProtoD) GetDynamicConfig() error {
 		}
 	}
 	return nil
+}
+
+// Query Envoy for the current metadata
+func getEnvoyInfo() (map[string]interface{}, error) {
+	r, err := http.Get("http://127.0.0.1:19000/server_info")
+	if err != nil {
+		return nil, err
+	}
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]interface{}
+	json.Unmarshal(bodyBytes, &result)
+	return result, nil
 }
