@@ -18,6 +18,13 @@ type EnvoyInfo struct {
 	Uptime  string `json:"uptime"`
 }
 
+type HTTPpayload struct {
+	Cluster string `json:"cluster"`
+	Service string `json:"service"`
+	Type    string `json:"type"`
+	Config  string `json:"config"`
+}
+
 // WriteToDisk writes some data to disk
 func WriteToDisk(fileName string, data []byte) error {
 	err := ioutil.WriteFile(fileName, data, 0644)

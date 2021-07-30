@@ -8,15 +8,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/dgzlopes/prototype/pkg/util"
 	"github.com/spf13/cobra"
 )
-
-type HTTPpayload struct {
-	Cluster string `json:"cluster"`
-	Service string `json:"service"`
-	Type    string `json:"type"`
-	Config  string `json:"config"`
-}
 
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
@@ -30,7 +24,7 @@ var applyCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		file, _ := ioutil.ReadFile(filePath)
-		json_data, err := json.Marshal(HTTPpayload{
+		json_data, err := json.Marshal(util.HTTPpayload{
 			Cluster: cmd.PersistentFlags().Lookup("cluster").Value.String(),
 			Service: cmd.PersistentFlags().Lookup("service").Value.String(),
 			Type:    cmd.PersistentFlags().Lookup("type").Value.String(),

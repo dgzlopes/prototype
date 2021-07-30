@@ -132,21 +132,13 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID, protod.EnvoyInfo)
 }
 
-type Send struct {
-	Cluster string   `json:"cluster"`
-	Service string   `json:"service"`
-	Type    string   `json:"type"`
-	Tags    []string `json:"tags"`
-	Config  string   `json:"config"`
-}
-
 func (c *Client) configPath(w http.ResponseWriter, r *http.Request) {
 	headerContentTtype := r.Header.Get("Content-Type")
 	if headerContentTtype != "application/json" {
 		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
 		return
 	}
-	var send Send
+	var send util.HTTPpayload
 	var unmarshalErr *json.UnmarshalTypeError
 
 	decoder := json.NewDecoder(r.Body)
