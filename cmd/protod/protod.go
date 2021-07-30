@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,45 +17,65 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Configuration base struct
-type Configuration struct {
-	Node             *Node             `yaml:"node"`
-	DynamicResources *DynamicResources `yaml:"dynamic_resources"`
-	Admin            *Admin            `yaml:"admin"`
+var (
+	prometheusListenAddress string
+	prometheusPath          string
+
+	prototypeURL    string
+	refreshDuration time.Duration
+)
+
+func init() {
+	flag.StringVar(&prometheusPath, "prometheus-path", "/metrics", "The path to publish Prometheus metrics to.")
+	flag.StringVar(&prometheusListenAddress, "prometheus-listen-address", ":80", "The address to listen on for Prometheus scrapes.")
+
+	flag.StringVar(&prototypeURL, "prototype-url", "", "The URL (scheme://hostname) at which to find Prototype.")
+	flag.DurationVar(&refreshDuration, "refresh-duration", 15*time.Second, "The amount of time to pause between config refreshes")
 }
 
-// Node is used for instance identification purposes
-type Node struct {
-	Cluster string `yaml:"cluster"`
-	ID      string `yaml:"id"`
-}
+func main() {
+	flag.Parse()
 
-// DynamicResources specify where to load dynamic configuration from.
-type DynamicResources struct {
-	CDSConfig *ConfigSource `yaml:"cds_config"`
-	LDSConfig *ConfigSource `yaml:"lds_config"`
-}
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
 
-// ConfigSource for each xDS API source
-type ConfigSource struct {
-	Path string `yaml:"path"`
-}
+	endpoint := "http://localhost:10000"
+	refresh := 10
 
-// Admin interface config
-type Admin struct {
-	AccessLogPath string  `yaml:"access_log_path"`
-	Adress        *Adress `yaml:"address"`
-}
+	// Check if we can find envoy binary
+	_, err := exec.LookPath("envoy")
+	if err != nil {
+		log.Fatalf("Envoy lookpath failed with %s\n", err)
+	}
 
-// Adress is the TCP address that the administration server will listen on.
-type Adress struct {
-	SocketAdress *SocketAdress `yaml:"socket_address"`
-}
+	generatedConfig := GenerateConfig()
+	config, err := yaml.Marshal(generatedConfig)
+	if err != nil {
+		log.Fatalf("Failed to config %s\n", err)
+	}
 
-// SocketAdress config about the socket
-type SocketAdress struct {
-	Adress    string `yaml:"address"`
-	PortValue int    `yaml:"port_value"`
+	err = WriteConfigFile("config.yaml", config)
+	if err != nil {
+		log.Fatalf("Failed to write config to file %s\n", err)
+	}
+
+	// Create initial files
+	f, err := os.Create("/tmp/cds.yaml")
+	f.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	f, err = os.Create("/tmp/lds.yaml")
+	f.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	generatedConfig.GetDynamicConfig(endpoint)
+	//go RunEnvoy(wg, "-c", "config.yaml", "-l", "debug")
+	go generatedConfig.GetDynamicConfigCycle(wg, endpoint, refresh)
+	go RunEnvoy(wg, "-c", "config.yaml")
+
+	wg.Wait()
 }
 
 // WriteConfigFile writes a config to disk
@@ -64,33 +85,6 @@ func WriteConfigFile(fileName string, data []byte) error {
 		return err
 	}
 	return nil
-}
-
-// GenerateConfig from CLI flags
-func GenerateConfig() *Configuration {
-	return &Configuration{
-		&Node{
-			Cluster: "example",
-			ID:      "node-1",
-		},
-		&DynamicResources{
-			CDSConfig: &ConfigSource{
-				Path: "/tmp/cds.yaml",
-			},
-			LDSConfig: &ConfigSource{
-				Path: "/tmp/lds.yaml",
-			},
-		},
-		&Admin{
-			AccessLogPath: "/dev/null",
-			Adress: &Adress{
-				SocketAdress: &SocketAdress{
-					Adress:    "0.0.0.0",
-					PortValue: 19000,
-				},
-			},
-		},
-	}
 }
 
 type ProtoD struct {
@@ -116,14 +110,14 @@ func (cf *Configuration) GetDynamicConfig(endpoint string) error {
 	})
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	resp, err := http.Post(endpoint+"/api/protod", "application/json",
 		bytes.NewBuffer(json_data))
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	var res map[string]string
@@ -165,52 +159,18 @@ func (cf *Configuration) GetDynamicConfigCycle(wg *sync.WaitGroup, endpoint stri
 func RunEnvoy(wg *sync.WaitGroup, args ...string) {
 	defer wg.Done()
 	cmd := exec.Command("envoy", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalf("cmd.Run() failed with %s\n", err)
-	}
-}
-func main() {
-	wg := new(sync.WaitGroup)
-	wg.Add(2)
+	stdout, _ := cmd.StdoutPipe()
+	cmd.Stderr = cmd.Stdout
+	cmd.Start()
 
-	endpoint := "http://localhost:10000"
-	refresh := 10
-
-	// Check if we can find envoy binary
-	_, err := exec.LookPath("envoy")
-	if err != nil {
-		log.Fatalf("Envoy lookpath failed with %s\n", err)
+	for {
+		tmp := make([]byte, 1024)
+		_, err := stdout.Read(tmp)
+		fmt.Print(string(tmp))
+		if err != nil {
+			break
+		}
 	}
 
-	generatedConfig := GenerateConfig()
-	config, err := yaml.Marshal(generatedConfig)
-	if err != nil {
-		log.Fatalf("Failed to config %s\n", err)
-	}
-
-	err = WriteConfigFile("config.yaml", config)
-	if err != nil {
-		log.Fatalf("Failed to write config to file %s\n", err)
-	}
-
-	// Create initial files
-	f, err := os.Create("/tmp/cds.yaml")
-	f.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	f, err = os.Create("/tmp/lds.yaml")
-	f.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	generatedConfig.GetDynamicConfig(endpoint)
-	//go RunEnvoy(wg, "-c", "config.yaml", "-l", "debug")
-	go generatedConfig.GetDynamicConfigCycle(wg, endpoint, refresh)
-	go RunEnvoy(wg, "-c", "config.yaml")
-
-	wg.Wait()
+	cmd.Wait()
 }
