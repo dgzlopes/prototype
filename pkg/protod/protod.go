@@ -182,7 +182,7 @@ func (p *ProtoD) GetDynamicConfig() error {
 
 // Query Envoy for the current metadata
 func getEnvoyInfo() (map[string]interface{}, error) {
-	r, err := http.Get("http://127.0.0.1:19000/server_info")
+	r, err := http.Get("http://0.0.0.0:19000/server_info")
 	if err != nil {
 		return nil, err
 	}
