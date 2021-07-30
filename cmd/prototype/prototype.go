@@ -88,12 +88,12 @@ func (c *Client) GetAllKeys() []string {
 }
 
 // GetServiceConfigWithTags returns all config versions for some service, that completely match a set of tags
-func (c *Client) GetServiceConfigWithTags(service string, allVersions bool) map[string]string {
+func (c *Client) GetServiceConfigWithTags(cluster string, service string, allVersions bool) map[string]string {
 	return c.GetByPrefix("config/"+service, allVersions)
 }
 
 // SetServiceConfigWithTags stores a config for some service with tags
-func (c *Client) SetServiceConfigWithTags(service string, cType string, config []byte) {
+func (c *Client) SetServiceConfigWithTags(cluster string, service string, cType string, config []byte) {
 	b := "config/" + service + "/" + cType
 	c.Set(b, config)
 }
@@ -127,16 +127,17 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	configs := c.GetServiceConfigWithTags(protod.Service, false)
+	configs := c.GetServiceConfigWithTags(protod.Cluster, protod.Service, false)
 	json.NewEncoder(w).Encode(configs)
 	fmt.Println("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID, protod.EnvoyInfo)
 }
 
 type Send struct {
-	Name   string   `json:"name"`
-	Type   string   `json:"type"`
-	Tags   []string `json:"tags"`
-	Config string   `json:"config"`
+	Cluster string   `json:"cluster"`
+	Service string   `json:"service"`
+	Type    string   `json:"type"`
+	Tags    []string `json:"tags"`
+	Config  string   `json:"config"`
 }
 
 func (c *Client) configPath(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +160,7 @@ func (c *Client) configPath(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	c.SetServiceConfigWithTags(send.Name, send.Type, []byte(send.Config))
+	c.SetServiceConfigWithTags(send.Cluster, send.Service, send.Type, []byte(send.Config))
 	fmt.Println("Endpoint Hit: Config")
 	fmt.Println(send)
 }
@@ -179,9 +180,9 @@ func main() {
 	cds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/cds.yaml")
 	lds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/lds.yaml")
 
-	client.SetServiceConfigWithTags("quote", "cds", cds)
-	client.SetServiceConfigWithTags("quote", "lds", lds)
-	fmt.Println(client.GetServiceConfigWithTags("quote", true))
+	client.SetServiceConfigWithTags("default", "quote", "cds", cds)
+	client.SetServiceConfigWithTags("default", "quote", "lds", lds)
+	fmt.Println(client.GetServiceConfigWithTags("default", "quote", true))
 	fmt.Println(client.GetAllKeys())
 	client.handleRequests()
 }
