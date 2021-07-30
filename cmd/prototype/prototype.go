@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	badger "github.com/dgraph-io/badger/v3"
 	"github.com/dgzlopes/prototype/pkg/util"
@@ -89,29 +88,13 @@ func (c *Client) GetAllKeys() []string {
 }
 
 // GetServiceConfigWithTags returns all config versions for some service, that completely match a set of tags
-func (c *Client) GetServiceConfigWithTags(service string, tags []string, allVersions bool) map[string]string {
-	configs := c.GetByPrefix("config/"+service, allVersions)
-	m := make(map[string]string)
-	for k, v := range configs {
-		pass := true
-		for _, tag := range tags {
-			if !strings.Contains(k, "tag:"+tag) {
-				pass = false
-			}
-		}
-		if pass && len(tags) == strings.Count(k, "tag:") {
-			m[k] = v
-		}
-	}
-	return m
+func (c *Client) GetServiceConfigWithTags(service string, allVersions bool) map[string]string {
+	return c.GetByPrefix("config/"+service, allVersions)
 }
 
 // SetServiceConfigWithTags stores a config for some service with tags
-func (c *Client) SetServiceConfigWithTags(service string, cType string, tags []string, config []byte) {
+func (c *Client) SetServiceConfigWithTags(service string, cType string, config []byte) {
 	b := "config/" + service + "/" + cType
-	for _, tag := range tags {
-		b += "/tag:" + tag
-	}
 	c.Set(b, config)
 }
 
@@ -144,7 +127,7 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	configs := c.GetServiceConfigWithTags(protod.Service, protod.Tags, false)
+	configs := c.GetServiceConfigWithTags(protod.Service, false)
 	json.NewEncoder(w).Encode(configs)
 	fmt.Println("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID, protod.EnvoyInfo)
 }
@@ -176,7 +159,7 @@ func (c *Client) configPath(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	c.SetServiceConfigWithTags(send.Name, send.Type, send.Tags, []byte(send.Config))
+	c.SetServiceConfigWithTags(send.Name, send.Type, []byte(send.Config))
 	fmt.Println("Endpoint Hit: Config")
 	fmt.Println(send)
 }
@@ -196,9 +179,9 @@ func main() {
 	cds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/cds.yaml")
 	lds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/lds.yaml")
 
-	client.SetServiceConfigWithTags("quote", "cds", []string{"env:production", "version:0.0.6-beta"}, cds)
-	client.SetServiceConfigWithTags("quote", "lds", []string{"env:production", "version:0.0.6-beta"}, lds)
-	fmt.Println(client.GetServiceConfigWithTags("quote", []string{"env:production", "version:0.0.6-beta"}, true))
+	client.SetServiceConfigWithTags("quote", "cds", cds)
+	client.SetServiceConfigWithTags("quote", "lds", lds)
+	fmt.Println(client.GetServiceConfigWithTags("quote", true))
 	fmt.Println(client.GetAllKeys())
 	client.handleRequests()
 }
