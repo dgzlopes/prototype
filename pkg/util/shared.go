@@ -3,9 +3,10 @@ package util
 import "io/ioutil"
 
 type PrototypeRequest struct {
-	Name string   `json:"name"`
-	ID   string   `json:"id"`
-	Tags []string `json:"tags"`
+	Cluster string   `json:"cluster"`
+	Service string   `json:"service"`
+	ID      string   `json:"id"`
+	Tags    []string `json:"tags"`
 }
 
 // WriteToDisk writes some data to disk

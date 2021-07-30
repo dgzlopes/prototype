@@ -6,8 +6,9 @@ type Config struct {
 	PrometheusPath          string
 	PrometheusListenAddress string
 
-	Name string
-	Tags []string
+	Cluster string
+	Service string
+	Tags    []string
 
 	PrototypeURL string
 	RefreshWait  time.Duration

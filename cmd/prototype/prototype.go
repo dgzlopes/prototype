@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	badger "github.com/dgraph-io/badger/v3"
+	"github.com/dgzlopes/prototype/pkg/util"
 	"github.com/gorilla/mux"
 )
 
@@ -114,12 +115,6 @@ func (c *Client) SetServiceConfigWithTags(service string, cType string, tags []s
 	c.Set(b, config)
 }
 
-type PrototypeRequest struct {
-	Name string   `json:"name"`
-	ID   string   `json:"id"`
-	Tags []string `json:"tags"`
-}
-
 func errorResponse(w http.ResponseWriter, message string, httpStatusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpStatusCode)
@@ -135,7 +130,7 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
 		return
 	}
-	var protod PrototypeRequest
+	var protod util.PrototypeRequest
 	var unmarshalErr *json.UnmarshalTypeError
 
 	decoder := json.NewDecoder(r.Body)
@@ -149,9 +144,9 @@ func (c *Client) protodPath(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	configs := c.GetServiceConfigWithTags(protod.Name, protod.Tags, false)
+	configs := c.GetServiceConfigWithTags(protod.Service, protod.Tags, false)
 	json.NewEncoder(w).Encode(configs)
-	fmt.Println("Endpoint Hit: ProtoD:  ", protod.ID)
+	fmt.Println("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID)
 }
 
 type Send struct {
@@ -183,6 +178,7 @@ func (c *Client) configPath(w http.ResponseWriter, r *http.Request) {
 	}
 	c.SetServiceConfigWithTags(send.Name, send.Type, send.Tags, []byte(send.Config))
 	fmt.Println("Endpoint Hit: Config")
+	fmt.Println(send)
 }
 
 func (c *Client) handleRequests() {

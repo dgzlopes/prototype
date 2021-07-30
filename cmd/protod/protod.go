@@ -28,13 +28,14 @@ func init() {
 
 	flag.StringVar(&cfg.PrototypeURL, "prototype-url", "http://localhost:10000", "The URL (scheme://hostname) at which to find Prototype.")
 	flag.DurationVar(&cfg.RefreshWait, "refresh-duration", 15*time.Second, "The amount of time to pause between config refreshes")
-	flag.StringVar(&cfg.Name, "name", "default", "")
+	flag.StringVar(&cfg.Cluster, "cluster", "default", "")
+	flag.StringVar(&cfg.Service, "service", "envoy", "")
 	flag.StringVar(&tmpTags, "tags", "", "")
-	cfg.Tags = strings.Split(tmpTags, ",")
 }
 
 func main() {
 	flag.Parse()
+	cfg.Tags = strings.Split(tmpTags, ",")
 
 	logger := log.New()
 	logger.SetFormatter(&log.TextFormatter{DisableColors: true, FullTimestamp: true})

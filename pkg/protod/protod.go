@@ -32,7 +32,7 @@ type ProtoD struct {
 
 func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
 	p := &ProtoD{
-		id:     cfg.Name + "_" + namesgenerator.GetRandomName(0),
+		id:     cfg.Service + "_" + namesgenerator.GetRandomName(0),
 		cfg:    cfg,
 		logger: logger,
 	}
@@ -130,9 +130,10 @@ func (p *ProtoD) pull(ctx context.Context) error {
 // GetDynamicConfig gets all the configs from the control plane
 func (p *ProtoD) GetDynamicConfig() error {
 	json_data, err := json.Marshal(util.PrototypeRequest{
-		Name: p.cfg.Name,
-		ID:   p.id,
-		Tags: p.cfg.Tags,
+		Cluster: p.cfg.Cluster,
+		Service: p.cfg.Service,
+		ID:      p.id,
+		Tags:    p.cfg.Tags,
 	})
 
 	if err != nil {
