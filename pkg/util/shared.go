@@ -1,6 +1,8 @@
 package util
 
 import (
+	"bytes"
+	"encoding/gob"
 	"io/ioutil"
 )
 
@@ -32,4 +34,25 @@ func WriteToDisk(fileName string, data []byte) error {
 		return err
 	}
 	return nil
+}
+
+func (m PrototypeRequest) EncodeToBytes() ([]byte, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	err := enc.Encode(m)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
+}
+
+func DecodeFromBytes(q []byte) (PrototypeRequest, error) {
+	var rm PrototypeRequest
+	buffer := bytes.NewBuffer(q)
+	dec := gob.NewDecoder(buffer)
+	err := dec.Decode(&rm)
+	if err != nil {
+		return PrototypeRequest{}, err
+	}
+	return rm, nil
 }

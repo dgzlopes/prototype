@@ -19,9 +19,13 @@ type Prototype struct {
 	services []services.Service
 	logger   *log.Logger
 
-	db *badger.DB
+	db *Badger
 
 	cfg *Config
+}
+
+type Badger struct {
+	i *badger.DB
 }
 
 func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
@@ -32,7 +36,7 @@ func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
 
 	p := &Prototype{
 		cfg:    cfg,
-		db:     db,
+		db:     &Badger{i: db},
 		logger: logger,
 	}
 
@@ -48,8 +52,8 @@ func (p *Prototype) run(ctx context.Context) error {
 		cds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/cds.yaml")
 		lds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/lds.yaml")
 
-		p.Set("config/default/cds", cds)
-		p.Set("config/default/lds", lds)
+		p.db.Set("config/default/quote/cds", cds)
+		p.db.Set("config/default/quote/lds", lds)
 
 		// Set up API
 		myRouter := mux.NewRouter().StrictSlash(true)
@@ -63,13 +67,13 @@ func (p *Prototype) run(ctx context.Context) error {
 
 func (p *Prototype) shutDown(_ error) error {
 	p.logger.Info("Shutting down prototype")
-	p.db.Close()
+	p.db.i.Close()
 	return nil
 }
 
 // Set the given key with the given value.
-func (p *Prototype) Set(key string, value []byte) error {
-	err := p.db.Update(func(txn *badger.Txn) error {
+func (b *Badger) Set(key string, value []byte) error {
+	err := b.i.Update(func(txn *badger.Txn) error {
 		err := txn.Set([]byte(key), value)
 		return err
 	})
@@ -77,9 +81,9 @@ func (p *Prototype) Set(key string, value []byte) error {
 }
 
 // Get returns the value for the given key.
-func (p *Prototype) Get(key string) string {
+func (b *Badger) Get(key string) string {
 	var valCopy []byte
-	_ = p.db.View(func(txn *badger.Txn) error {
+	_ = b.i.View(func(txn *badger.Txn) error {
 		item, _ := txn.Get([]byte(key))
 		_ = item.Value(func(val []byte) error {
 			valCopy = append([]byte{}, val...)
@@ -91,9 +95,9 @@ func (p *Prototype) Get(key string) string {
 }
 
 // GetByPrefix return all the key value pairs where the key starts with some prefix.
-func (p *Prototype) GetByPrefix(prefix string, allVersions bool) map[string]string {
+func (b *Badger) GetByPrefix(prefix string, allVersions bool) map[string]string {
 	m := make(map[string]string)
-	p.db.View(func(txn *badger.Txn) error {
+	b.i.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.IteratorOptions{
 			PrefetchValues: true,
 			PrefetchSize:   100,
@@ -133,7 +137,7 @@ func (p *Prototype) protodPath(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	configs := p.GetByPrefix("config/"+protod.Service, false)
+	configs := p.db.GetByPrefix(keyGen(protod.Cluster, protod.Service, "", ""), false)
 	json.NewEncoder(w).Encode(configs)
 	p.logger.WithFields(log.Fields{
 		"cluster": protod.Cluster,
@@ -141,6 +145,15 @@ func (p *Prototype) protodPath(w http.ResponseWriter, r *http.Request) {
 		"id":      protod.ID,
 		"tags":    protod.Tags,
 	}).Info("Serving configs")
+
+	// Store Protod metadata in DB
+	enc, err := protod.EncodeToBytes()
+	if err != nil {
+		// TODO: Rethink how to handle this
+		http.Error(w, "Could not encode ProtoD", http.StatusInternalServerError)
+		return
+	}
+	p.db.Set(keyGen(protod.Cluster, protod.Service, "", protod.ID), enc)
 }
 
 func (p *Prototype) configPath(w http.ResponseWriter, r *http.Request) {
@@ -158,10 +171,21 @@ func (p *Prototype) configPath(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	p.Set("config/"+req.Service+"/"+req.Type, []byte(req.Config))
+	p.db.Set(keyGen(req.Cluster, req.Service, req.Type, ""), []byte(req.Config))
 	p.logger.WithFields(log.Fields{
 		"cluster": req.Cluster,
 		"service": req.Service,
 		"type":    req.Type,
 	}).Info("Applied new config")
+}
+
+func keyGen(cluster string, service string, rType string, id string) string {
+	key := "config/" + cluster + "/" + service
+	if id != "" {
+		key += "/" + id
+	}
+	if rType != "" {
+		key += "/" + rType
+	}
+	return key
 }
