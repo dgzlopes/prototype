@@ -3,7 +3,6 @@ package prototype
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -48,14 +47,6 @@ func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
 
 func (p *Prototype) run(ctx context.Context) error {
 	go func() {
-		// Add default configs
-		cds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/cds.yaml")
-		lds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/lds.yaml")
-
-		p.db.Set("config/default/quote/cds", cds)
-		p.db.Set("config/default/quote/lds", lds)
-
-		// Set up API
 		myRouter := mux.NewRouter().StrictSlash(true)
 		myRouter.HandleFunc("/api/protod", p.protodPath).Methods("POST")
 		myRouter.HandleFunc("/api/config", p.configPath).Methods("POST")
