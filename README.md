@@ -1,5 +1,15 @@
 # Prototype
 
+Prototype is a **minimal** service mesh built on top of Envoy.
+
+## Features
+
+- **Minimal**
+- **Envoy-based and compatible**: No need to change your Envoy configurations.
+- **Universal:** Can run and operate anywhere.
+## Architecture
+
+![architecture](/media/architecture.png)
 
 ## Quickstart
 Run Prototype:
