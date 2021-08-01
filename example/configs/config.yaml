@@ -1,9 +1,0 @@
-name: quote
-tags:
-  env: production
-  version: 0.0.6-beta
-resources:
-  - type: cds
-    path: cds.yaml
-  - type: lds
-    path: lds.yaml

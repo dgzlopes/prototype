@@ -39,8 +39,8 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.protoctl.yaml)")
+	rootCmd.PersistentFlags().StringP("endpoint", "e", "http://localhost:10000/api/config", "Endpoint")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/...yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -57,9 +57,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".protoctl" (without extension).
+		// Search config in home directory with name ".." (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".protoctl")
+		viper.SetConfigName("..")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
