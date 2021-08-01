@@ -41,3 +41,5 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 - Add support for "original/static" envoy configs.
 - Add support to apply a config to all the services with the same tag?
   - Maybe we can merge this config with the existing ones? That would be cool. Merging resources. Merge command?
+
+- [IF I'VE TIME] Add support for etcd! HA :) Remember the locks daniel
