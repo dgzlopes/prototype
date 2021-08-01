@@ -3,7 +3,6 @@ package prototype
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -26,7 +25,11 @@ type Prototype struct {
 }
 
 func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
-	db, _ := badger.Open(badger.DefaultOptions("").WithLoggingLevel(badger.ERROR).WithInMemory(true).WithNumVersionsToKeep(10))
+	db, err := badger.Open(badger.DefaultOptions("").WithLoggingLevel(badger.ERROR).WithInMemory(true).WithNumVersionsToKeep(10))
+	if err != nil {
+		return nil, err
+	}
+
 	p := &Prototype{
 		cfg:    cfg,
 		db:     db,
@@ -41,14 +44,18 @@ func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
 
 func (p *Prototype) run(ctx context.Context) error {
 	go func() {
+		// Add default configs
 		cds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/cds.yaml")
 		lds, _ := ioutil.ReadFile("/home/dgzlopes/go/src/github.com/dgzlopes/prototype/example/configs/lds.yaml")
 
-		p.SetServiceConfigWithTags("default", "quote", "cds", cds)
-		p.SetServiceConfigWithTags("default", "quote", "lds", lds)
-		//fmt.Println(p.GetServiceConfigWithTags("default", "quote", true))
-		//fmt.Println(p.GetAllKeys())
-		p.handleRequests()
+		p.Set("config/default/cds", cds)
+		p.Set("config/default/lds", lds)
+
+		// Set up API
+		myRouter := mux.NewRouter().StrictSlash(true)
+		myRouter.HandleFunc("/api/protod", p.protodPath).Methods("POST")
+		myRouter.HandleFunc("/api/config", p.configPath).Methods("POST")
+		log.Fatal(http.ListenAndServe(":10000", myRouter))
 	}()
 	<-ctx.Done()
 	return nil
@@ -111,97 +118,50 @@ func (p *Prototype) GetByPrefix(prefix string, allVersions bool) map[string]stri
 	return m
 }
 
-// GetAllKeys returns all the keys.
-func (p *Prototype) GetAllKeys() []string {
-	s := []string{}
-	_ = p.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchValues = false
-		it := txn.NewIterator(opts)
-		defer it.Close()
-		for it.Rewind(); it.Valid(); it.Next() {
-			item := it.Item()
-			k := item.Key()
-			s = append(s, string(k))
-		}
-		return nil
-	})
-	return s
-}
-
-// GetServiceConfigWithTags returns all config versions for some service, that completely match a set of tags
-func (p *Prototype) GetServiceConfigWithTags(cluster string, service string, allVersions bool) map[string]string {
-	return p.GetByPrefix("config/"+service, allVersions)
-}
-
-// SetServiceConfigWithTags stores a config for some service with tags
-func (p *Prototype) SetServiceConfigWithTags(cluster string, service string, cType string, config []byte) {
-	b := "config/" + service + "/" + cType
-	p.Set(b, config)
-}
-
-func errorResponse(w http.ResponseWriter, message string, httpStatusCode int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(httpStatusCode)
-	resp := make(map[string]string)
-	resp["message"] = message
-	jsonResp, _ := json.Marshal(resp)
-	w.Write(jsonResp)
-}
-
 func (p *Prototype) protodPath(w http.ResponseWriter, r *http.Request) {
 	headerContentTtype := r.Header.Get("Content-Type")
 	if headerContentTtype != "application/json" {
-		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
+		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
 		return
 	}
 	var protod util.PrototypeRequest
-	var unmarshalErr *json.UnmarshalTypeError
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&protod)
 	if err != nil {
-		if errors.As(err, &unmarshalErr) {
-			errorResponse(w, "Bad Request. Wrong Type provided for field "+unmarshalErr.Field, http.StatusBadRequest)
-		} else {
-			errorResponse(w, "Bad Request "+err.Error(), http.StatusBadRequest)
-		}
+		http.Error(w, "Invalid JSON"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	configs := p.GetServiceConfigWithTags(protod.Cluster, protod.Service, false)
+	configs := p.GetByPrefix("config/"+protod.Service, false)
 	json.NewEncoder(w).Encode(configs)
-	p.logger.Info("Endpoint Hit: ProtoD:  ", protod.Service, protod.Tags, protod.ID, protod.EnvoyInfo)
+	p.logger.WithFields(log.Fields{
+		"cluster": protod.Cluster,
+		"service": protod.Service,
+		"id":      protod.ID,
+		"tags":    protod.Tags,
+	}).Info("Serving configs")
 }
 
 func (p *Prototype) configPath(w http.ResponseWriter, r *http.Request) {
 	headerContentTtype := r.Header.Get("Content-Type")
 	if headerContentTtype != "application/json" {
-		errorResponse(w, "Content Type is not application/json", http.StatusUnsupportedMediaType)
+		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
 		return
 	}
-	var send util.HTTPpayload
-	var unmarshalErr *json.UnmarshalTypeError
+	var req util.HTTPpayload
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&send)
+	err := decoder.Decode(&req)
 	if err != nil {
-		if errors.As(err, &unmarshalErr) {
-			errorResponse(w, "Bad Request. Wrong Type provided for field "+unmarshalErr.Field, http.StatusBadRequest)
-		} else {
-			errorResponse(w, "Bad Request "+err.Error(), http.StatusBadRequest)
-		}
+		http.Error(w, "Invalid JSON"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	p.SetServiceConfigWithTags(send.Cluster, send.Service, send.Type, []byte(send.Config))
-	p.logger.Info("Endpoint Hit: Config")
-	p.logger.Info(send)
-}
-
-func (c *Prototype) handleRequests() {
-	myRouter := mux.NewRouter().StrictSlash(true)
-	myRouter.HandleFunc("/api/protod", c.protodPath).Methods("POST")
-	myRouter.HandleFunc("/api/config", c.configPath).Methods("POST")
-	log.Fatal(http.ListenAndServe(":10000", myRouter))
+	p.Set("config/"+req.Service+"/"+req.Type, []byte(req.Config))
+	p.logger.WithFields(log.Fields{
+		"cluster": req.Cluster,
+		"service": req.Service,
+		"type":    req.Type,
+	}).Info("Applied new config")
 }
