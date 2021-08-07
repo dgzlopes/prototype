@@ -1,4 +1,4 @@
-name: prototype CI to Docker Hub
+name: Build and push Docker image
 on:
   push:
     branches: [ main ]
