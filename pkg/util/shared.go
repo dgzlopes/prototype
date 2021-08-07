@@ -15,9 +15,10 @@ type PrototypeRequest struct {
 }
 
 type EnvoyInfo struct {
-	Version string `json:"version"`
-	State   string `json:"state"`
-	Uptime  string `json:"uptime"`
+	Version   string `json:"version"`
+	State     string `json:"state"`
+	Uptime    string `json:"uptime"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 type HTTPpayload struct {

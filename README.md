@@ -40,6 +40,7 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
   - Clean up the example, and add docs.
 - Add support for the rest of xDS configs.
 - Add support for "original/static" envoy configs.
+- Re-check the things that we don't have flags for (hardcoded stuff)
 - Add support to apply a config to all the services with the same tag?
   - Maybe we can merge this config with the existing ones? That would be cool. Merging resources. Merge command?
 - Autodetect resource type from the file and be able to mix multiple resources on the same file (of diff types).

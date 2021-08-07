@@ -7,12 +7,11 @@ type Config struct {
 	PrometheusListenAddress string
 
 	// Prototype (Control plane)
-	Cluster string
-	Service string
-	Tags    []string
-
 	PrototypeURL string
-	RefreshWait  time.Duration
 
 	// ProtoD (Data plane)
+	Cluster     string
+	Service     string
+	Tags        []string
+	RefreshWait time.Duration
 }

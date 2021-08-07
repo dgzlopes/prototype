@@ -141,9 +141,10 @@ func (p *ProtoD) GetDynamicConfig() error {
 		ID:      p.id,
 		Tags:    p.cfg.Tags,
 		EnvoyInfo: &util.EnvoyInfo{
-			Version: envoyInfo["version"].(string),
-			State:   envoyInfo["state"].(string),
-			Uptime:  envoyInfo["uptime_current_epoch"].(string),
+			Version:   envoyInfo["version"].(string),
+			State:     envoyInfo["state"].(string),
+			Uptime:    envoyInfo["uptime_current_epoch"].(string),
+			Timestamp: time.Now().UTC().Unix(),
 		},
 	})
 	if err != nil {
