@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+  prototype:
+    image: ghcr.io/dgzlopes/prototype:latest
+    networks:
+    - envoymesh
+    ports:
+    - "10000:10000"
+
+  front-protod:
+    image: ghcr.io/dgzlopes/prototype:latest
+    command: -d -cluster default -service front -tags=env:development -prototype-url http://prototype:10000
+    networks:
+    - envoymesh
+    ports:
+    - "8080:8080"
+
+  service1:
+    build:
+      context: .
+      dockerfile: Dockerfile-service
+    volumes:
+    - ./service-envoy.yaml:/etc/service-envoy.yaml
+    networks:
+    - envoymesh
+    environment:
+    - SERVICE_NAME=1
+
+  service2:
+    build:
+      context: .
+      dockerfile: Dockerfile-service
+    volumes:
+    - ./service-envoy.yaml:/etc/service-envoy.yaml
+    networks:
+    - envoymesh
+    environment:
+    - SERVICE_NAME=2
+networks:
+  envoymesh: {}

@@ -36,10 +36,12 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 - Return multiple versions of each config on the API
 - Let the user configure Prototype, and revisit all the config params for the rest of the tools.
 - ~~Create Docker pipeline to create the image.~~
-- Create example using docker compose.
+- ~~Create example using docker compose.~~
+  - Clean up the example, and add docs.
 - Add support for the rest of xDS configs.
 - Add support for "original/static" envoy configs.
 - Add support to apply a config to all the services with the same tag?
   - Maybe we can merge this config with the existing ones? That would be cool. Merging resources. Merge command?
+- Autodetect resource type from the file and be able to mix multiple resources on the same file (of diff types).
 
 - [IF I'VE TIME] Add support for etcd! HA :) Remember the locks daniel

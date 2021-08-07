@@ -1,0 +1,13 @@
+FROM ghcr.io/dgzlopes/prototype:latest
+
+RUN apt-get update && apt-get install -y software-properties-common gcc && \
+    add-apt-repository -y ppa:deadsnakes/ppa
+
+RUN apt-get update && apt-get install -y python3.6 python3-distutils python3-pip python3-apt curl
+
+RUN pip3 install -q Flask==0.11.1 requests==2.18.4
+RUN mkdir /code
+ADD ./service.py /code
+ADD ./start_service.sh /usr/local/bin/start_service.sh
+RUN chmod u+x /usr/local/bin/start_service.sh
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/start_service.sh"]
