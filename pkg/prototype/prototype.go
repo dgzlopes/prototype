@@ -55,8 +55,7 @@ func (p *Prototype) run(ctx context.Context) error {
 	go func() {
 		myRouter := mux.NewRouter().StrictSlash(true)
 		myRouter.HandleFunc("/api/protod", p.protodPath).Methods("POST")
-		myRouter.HandleFunc("/api/protod", p.protodGetAllPath).Methods("GET")
-		myRouter.HandleFunc("/api/protod/{cluster}/{service}/{id}", p.protodGetPath).Methods("GET")
+		myRouter.HandleFunc("/api/protod", p.protodGetAll).Methods("GET")
 		myRouter.HandleFunc("/api/config", p.configPath).Methods("POST")
 		myRouter.HandleFunc("/api/config/{cluster}/{service}/{type}", p.configGetPath).Methods("GET")
 		myRouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -211,29 +210,23 @@ func (p *Prototype) configPath(w http.ResponseWriter, r *http.Request) {
 	}).Info("Applied new config")
 }
 
-func (p *Prototype) protodGetPath(w http.ResponseWriter, r *http.Request) {
+func (p *Prototype) protodGetAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	vars := mux.Vars(r)
-	v, err := p.db.Get(keyGen(vars["cluster"], vars["service"], "", vars["id"]))
-	if err != nil {
-		http.Error(w, "Could not find Protod", http.StatusNotFound)
-		return
-	}
-	proto, err := util.DecodeFromBytes([]byte(v))
-	if err != nil {
-		http.Error(w, "Could not decode Protod", http.StatusInternalServerError)
-		return
-	}
-	json.NewEncoder(w).Encode(proto)
-}
-
-func (p *Prototype) protodGetAllPath(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	var toret []string
+	var toret []util.PrototypeRequest
 	v := p.db.GetAllKeys()
 	for _, a := range v {
 		if strings.Contains(a, "/id/") {
-			toret = append(toret, a)
+			v, err := p.db.Get(a)
+			if err != nil {
+				http.Error(w, "Could not find Protod", http.StatusNotFound)
+				return
+			}
+			proto, err := util.DecodeFromBytes([]byte(v))
+			if err != nil {
+				http.Error(w, "Could not decode Protod", http.StatusInternalServerError)
+				return
+			}
+			toret = append(toret, proto)
 		}
 	}
 	json.NewEncoder(w).Encode(toret)

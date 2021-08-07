@@ -15,8 +15,7 @@ import (
 // applyCmd represents the apply command
 var applyCmd = &cobra.Command{
 	Use:   "apply -c CLUSTER -s SERVICE -t TYPE -f FILENAME",
-	Short: "A brief description of your command",
-	Long:  `A longer description that spans multiple lines`,
+	Short: "Apply a set of configurations to Prototype.",
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := cmd.PersistentFlags().Lookup("filename").Value.String()
 		if !fileExists(filePath) {
@@ -39,7 +38,7 @@ var applyCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println("Profit!")
+		fmt.Println("Applied")
 	},
 }
 
