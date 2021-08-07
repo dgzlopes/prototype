@@ -41,7 +41,7 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 ## TODO
 
 - Finish the basic static website (show overall info, and point me to the APIs)
-- Add goroutine that removes old protod instances (with some sort of timestamp)
+- ~~Add goroutine that removes old protod instances (with some sort of timestamp)~~ (we don't need this)
 - ~~Merge all the tools into a single binary~~
 - Return multiple versions of each config on the API
 - Let the user configure Prototype, and revisit all the config params for the rest of the tools.
