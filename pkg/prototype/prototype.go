@@ -26,14 +26,14 @@ type Prototype struct {
 
 	db *Badger
 
-	cfg *Config
+	cfg *util.Config
 }
 
 type Badger struct {
 	i *badger.DB
 }
 
-func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
+func New(cfg *util.Config, logger *log.Logger) ([]services.Service, error) {
 	db, err := badger.Open(badger.DefaultOptions("").WithLoggingLevel(badger.ERROR).WithInMemory(true).WithNumVersionsToKeep(10))
 	if err != nil {
 		return nil, err

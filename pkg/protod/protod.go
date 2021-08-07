@@ -28,10 +28,10 @@ type ProtoD struct {
 	envoy    *exec.Cmd
 	envoycfg *EnvoyConfig
 
-	cfg *Config
+	cfg *util.Config
 }
 
-func New(cfg *Config, logger *log.Logger) ([]services.Service, error) {
+func New(cfg *util.Config, logger *log.Logger) ([]services.Service, error) {
 	p := &ProtoD{
 		id:     cfg.Service + "_" + namesgenerator.GetRandomName(0),
 		cfg:    cfg,

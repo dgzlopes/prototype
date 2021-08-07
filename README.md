@@ -19,7 +19,7 @@ go run cmd/prototype/prototype.go
 
 Run a ProtoD instance:
 ```
-go run cmd/protod/protod.go -cluster default -service quote -tags=env:production,version:0.0.6-beta
+go run cmd/prototype/prototype.go -d -cluster default -service quote -tags=env:production,version:0.0.6-beta
 ```
 
 Apply some configs:
@@ -32,7 +32,7 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 
 - Finish the basic static website (show overall info, and point me to the APIs)
 - Add goroutine that removes old protod instances (with some sort of timestamp)
-- Merge all the tools into a single binary
+- ~~Merge all the tools into a single binary~~
 - Return multiple versions of each config on the API
 - Let the user configure Prototype, and revisit all the config params for the rest of the tools.
 - Create Docker pipeline to create the image.
