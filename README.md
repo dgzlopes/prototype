@@ -10,13 +10,16 @@ Prototype is a **minimal** service mesh built on top of Envoy.
 ## Diagrams
 
 ![architecture](/media/architecture.png)
-*Architecture diagram*
+*Architecture*
 
 ![protod-detail](/media/protod-detail.png)  
-*Protod diagram*
+*Protod detail*
 
 ![internal-kv-datamodel](/media/internal-kv-datamodel.png)  
 *Internal K/V datamodel*
+
+![protod-internal-flows](/media/protod-internal-flows.png)  
+*Internal Protod flows*
 
 ## Quickstart
 Run Prototype:
