@@ -1,12 +1,28 @@
 # Prototype
 
-Prototype is a **minimal** service mesh built on top of Envoy.
+> ⚠️ Don't run this on production! It's a proof-of-concept.
 
-## Features
+Prototype is an open source, easy-to-use and minimal service mesh built on top of Envoy.
 
-- **Minimal**
-- **Envoy-based and compatible**: No need to change your Envoy configurations.
-- **Universal:** Can run and operate anywhere.
+## Quickstart
+
+Run Prototype:
+```
+go run cmd/prototype/prototype.go
+```
+
+Run a ProtoD instance:
+```
+go run cmd/prototype/prototype.go -d -cluster default -service quote -tags=env:production,version:0.0.6-beta
+```
+
+Apply some configs:
+```
+go run cmd/protoctl/main.go apply -c default -s quote -t cds -f ./example/configs/cds.yaml
+go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/configs/lds.yaml
+```
+
+
 ## Diagrams
 
 ![architecture](/media/architecture.png)
@@ -27,22 +43,17 @@ Prototype is a **minimal** service mesh built on top of Envoy.
 *Internal Protod flows*
 </details>
 
-## Quickstart
-Run Prototype:
-```
-go run cmd/prototype/prototype.go
-```
+## Inspiration
 
-Run a ProtoD instance:
-```
-go run cmd/prototype/prototype.go -d -cluster default -service quote -tags=env:production,version:0.0.6-beta
-```
+There are two main sources of inspiration for Prototype: [crossover](https://github.com/mumoshu/crossover) and [Kuma](https://kuma.io/).
 
-Apply some configs:
-```
-go run cmd/protoctl/main.go apply -c default -s quote -t cds -f ./example/configs/cds.yaml
-go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/configs/lds.yaml
-```
+- Crossover a minimal and sufficient xDS for Envoy. 
+  - The project doesn't try to make leaky abstractions op top of Envoy. 
+  - It's simple and clean.
+
+- Kuma is an universal Envoy service mesh. 
+  - It's not solely focused on Kubernetes (as most meshes are). 
+    - Not everyone has everything on Kubernetes :)
 
 ## TODO
 
