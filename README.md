@@ -35,7 +35,7 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 - ~~Merge all the tools into a single binary~~
 - Return multiple versions of each config on the API
 - Let the user configure Prototype, and revisit all the config params for the rest of the tools.
-- Create Docker pipeline to create the image.
+- ~~Create Docker pipeline to create the image.~~
 - Create example using docker compose.
 - Add support for the rest of xDS configs.
 - Add support for "original/static" envoy configs.

@@ -11,6 +11,6 @@ prototype:
 protoctl:
 	GO111MODULE=on CGO_ENABLED=0 go build $(GO_OPT) -o ./bin/$(GOOS)/protoctl-$(GOARCH) $(BUILD_INFO) ./cmd/protoctl
 
-.PHONY: protod
-protod:
-	GO111MODULE=on CGO_ENABLED=0 go build $(GO_OPT) -o ./bin/$(GOOS)/protod-$(GOARCH) $(BUILD_INFO) ./cmd/protod
+-PHONY: docker
+docker:
+	docker build -f cmd/prototype/Dockerfile -t ghcr.io/dgzlopes/prototype:latest .
