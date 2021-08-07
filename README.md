@@ -47,10 +47,9 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 
 There are two main sources of inspiration for Prototype: [crossover](https://github.com/mumoshu/crossover) and [Kuma](https://kuma.io/).
 
-- Crossover a minimal and sufficient xDS for Envoy. 
+- (some) Things I like from Crossover: 
   - The project doesn't try to make leaky abstractions op top of Envoy. 
   - It's simple and clean.
 
-- Kuma is an universal Envoy service mesh. 
+- (some) Things I like from Kuma: 
   - It's not solely focused on Kubernetes (as most meshes are). 
-    - Not everyone has everything on Kubernetes :)
