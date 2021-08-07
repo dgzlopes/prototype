@@ -14,3 +14,7 @@ protoctl:
 -PHONY: docker
 docker:
 	docker build -f cmd/prototype/Dockerfile -t ghcr.io/dgzlopes/prototype:latest .
+
+-PHONY: docker-protoctl
+docker-protoctl:
+	docker build -f cmd/protoctl/Dockerfile -t ghcr.io/dgzlopes/protoctl:latest .
