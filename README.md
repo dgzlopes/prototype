@@ -31,18 +31,6 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 ![protod-detail](/media/protod-detail.png)  
 *Protod detail*
 
-
-<details  style="margin-left:1.2em;">
-    <summary><b>Internal diagrams</b></summary>
-
- 
-![internal-kv-datamodel](/media/internal-kv-datamodel.png)  
-*Internal K/V datamodel*
-
-![protod-internal-flows](/media/protod-internal-flows.png)  
-*Internal Protod flows*
-</details>
-
 ## Inspiration
 
 There are two main sources of inspiration for Prototype: [crossover](https://github.com/mumoshu/crossover) and [Kuma](https://kuma.io/).
