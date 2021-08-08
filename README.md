@@ -1,26 +1,16 @@
 # Prototype
 
-> ⚠️ Don't run this on production! It's a proof-of-concept.
+> ⚠️ Don't run this on production! Please.
 
-Prototype is an open source, easy-to-use and minimal service mesh built on top of Envoy.
+Prototype is an open-source, easy-to-use, and minimal service mesh built on top of Envoy.
 
-## Quickstart
+Compared to other service meshes, Prototype:
+- does not create abstractions on top of Envoy.
+- is universal. It can be used on Kubernetes, but it is not the main focus of the project.
+- can be deployed and operated easily.
+- is a **toy** project.
 
-Run Prototype:
-```
-go run cmd/prototype/prototype.go
-```
-
-Run a ProtoD instance:
-```
-go run cmd/prototype/prototype.go -d -cluster default -service quote -tags=env:production,version:0.0.6-beta
-```
-
-Apply some configs:
-```
-go run cmd/protoctl/main.go apply -c default -s quote -t cds -f ./example/configs/cds.yaml
-go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/configs/lds.yaml
-```
+You can get a taste of Prototype, by running this [example](/example) scenario.
 
 
 ## Diagrams
@@ -36,7 +26,7 @@ go run cmd/protoctl/main.go apply -c default -s quote -t lds -f ./example/config
 There are two main sources of inspiration for Prototype: [crossover](https://github.com/mumoshu/crossover) and [Kuma](https://kuma.io/).
 
 - (some) Things I like from Crossover: 
-  - The project doesn't try to make leaky abstractions op top of Envoy. 
+  - The project doesn't try to make leaky abstractions on top of Envoy. 
   - It's simple and clean.
 
 - (some) Things I like from Kuma: 
