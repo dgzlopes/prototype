@@ -60,6 +60,11 @@ try:
     assert r.status_code == 200, "failed to call service 1"
     assert "Hello from behind Envoy (service 2)!" in r.text, "response incorrect from service 1"
 
+    # Check (again) if the control plane detected all the protods on the data plane
+    r = requests.get("http://localhost:10000/api/protod")
+    assert r.status_code == 200, "failed to fetch protods"
+    assert len(r.json()) == 5, "failed to find all protods"
+
 except Exception as e:
     # Show exeception
     print(e)
