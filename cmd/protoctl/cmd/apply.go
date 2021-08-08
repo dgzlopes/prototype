@@ -38,7 +38,7 @@ var applyCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println("Applied")
+		fmt.Printf("Applied cluster:%s service:%s type:%s \n", cmd.PersistentFlags().Lookup("cluster").Value.String(), cmd.PersistentFlags().Lookup("service").Value.String(), cmd.PersistentFlags().Lookup("type").Value.String())
 	},
 }
 
