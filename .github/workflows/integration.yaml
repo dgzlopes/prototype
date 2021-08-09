@@ -1,4 +1,4 @@
-name: Build and push Docker images
+name: Run integration tests
 on:
   push:
     branches: [ main ]
