@@ -2,15 +2,23 @@
 
 Wanna test Prototype? You're in the right place!
 
+Requirements:
+- Docker/Docker-Compose
+- Go >=1.16
+
 > Note: This example is based on Envoy's [front-proxy sandbox](https://www.envoyproxy.io/docs/envoy/latest/start/sandboxes/front_proxy.html).
 
-Build and start the docker-compose setup:
+We are going to run a small microservices demo using Docker Compose. Once that's up and running, we'll configure all the things using Prototype, and then we'll play with it.
+
+![example](../media/example.png)
+
+First things first. Let's build and start the docker-compose setup:
 ```
 docker-compose build (--pull)
 docker-compose up -d
 ```
 
-Apply the LDS and CDS configurations for the front-proxy:
+Apply the LDS and CDS configurations for the front Protod:
 ```
 go run ../cmd/protoctl/main.go apply -c default -s front -t cds -f ./configs/front/cds.yaml
 go run ../cmd/protoctl/main.go apply -c default -s front -t lds -f ./configs/front/lds.yaml
@@ -56,12 +64,12 @@ Hello from behind Envoy (service 1)! hostname: 46cbbb9e9fed resolvedhostname: 19
 Hello from behind Envoy (service 1)! hostname: b9bc774d2dba resolvedhostname: 192.168.208.7
 ```
 
-Nice! Finally, let's try to update the listeners of the front-proxy:
+Nice! Finally, let's try to update the listeners of the front Protod:
 ```
 go run ../cmd/protoctl/main.go apply -c default -s front -t lds -f ./configs/front/lds-swap.yaml
 ```
 
-On that new configuration, the front-proxy will now route all the requests on `/service/1`, to service 2.
+On that new configuration, the front Protod will now route all the requests on `/service/1`, to service 2.
 
 Let's check that! Run:
 ```
