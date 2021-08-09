@@ -6,7 +6,7 @@ import sys
 try:
     # Start docker-compose setup
     c = os.system("docker-compose -f example/docker-compose.yaml up -d --remove-orphans")
-    assert c != 0, "docker-compose up failed"
+    assert c == 0, "docker-compose up failed"
 
     # Wait a bit
     time.sleep(5)
