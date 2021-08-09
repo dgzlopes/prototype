@@ -1,0 +1,14 @@
+name: Build and push Docker images
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+      - name: "Run integration tests"
+        run: make integration

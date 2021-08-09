@@ -18,3 +18,8 @@ docker:
 -PHONY: docker-protoctl
 docker-protoctl:
 	docker build -f cmd/protoctl/Dockerfile -t ghcr.io/dgzlopes/protoctl:latest .
+
+.PHONY: integration
+integration:
+	pip3 install -r integration/requirements.txt
+	python3 integration/e2e.py
