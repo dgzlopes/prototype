@@ -20,7 +20,7 @@ var applyCmd = &cobra.Command{
 		filePath := cmd.PersistentFlags().Lookup("filename").Value.String()
 		if !fileExists(filePath) {
 			fmt.Println("File doesn't exist: " + filePath)
-			os.Exit(1)
+			os.Exit(0)
 		}
 		file, _ := ioutil.ReadFile(filePath)
 		json_data, err := json.Marshal(util.HTTPpayload{
@@ -33,7 +33,7 @@ var applyCmd = &cobra.Command{
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		_, err = http.Post(rootCmd.PersistentFlags().Lookup("endpoint").Value.String(), "application/json", bytes.NewBuffer(json_data))
+		_, err = http.Post(rootCmd.PersistentFlags().Lookup("endpoint").Value.String()+"/api/config", "application/json", bytes.NewBuffer(json_data))
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)

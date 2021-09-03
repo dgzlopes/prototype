@@ -57,6 +57,7 @@ func (p *Prototype) run(ctx context.Context) error {
 		myRouter.HandleFunc("/api/protod", p.protodPath).Methods("POST")
 		myRouter.HandleFunc("/api/protod", p.protodGetAll).Methods("GET")
 		myRouter.HandleFunc("/api/config", p.configPath).Methods("POST")
+		myRouter.HandleFunc("/api/config", p.configGetAll).Methods("GET")
 		myRouter.HandleFunc("/api/config/{cluster}/{service}/{type}", p.configGetPath).Methods("GET")
 		myRouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			// Use templating to ship this info on the webpage
@@ -227,6 +228,18 @@ func (p *Prototype) protodGetAll(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			toret = append(toret, proto)
+		}
+	}
+	json.NewEncoder(w).Encode(toret)
+}
+
+func (p *Prototype) configGetAll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var toret []string
+	v := p.db.GetAllKeys()
+	for _, a := range v {
+		if strings.Contains(a, "/config/") {
+			toret = append(toret, a)
 		}
 	}
 	json.NewEncoder(w).Encode(toret)
